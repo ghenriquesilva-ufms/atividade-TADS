@@ -1,0 +1,37 @@
+services:
+  external-api:
+    image: node:22-alpine
+    working_dir: /app
+    command: sh -c "npm install express && node mock-external/index.js"
+    volumes:
+      - ./:/app
+    environment:
+      - PORT=4001
+    ports:
+      - "4001:4001"
+
+  proxy:
+    build: .
+    depends_on:
+      - external-api
+    environment:
+      - PORT=3000
+      - EXTERNAL_API_URL=http://external-api:4001
+      - EXTERNAL_CLIENT_ID=proxy-interno-demo
+      - EXTERNAL_CLIENT_ID_PARAM_NAME=client_id
+      - CACHE_TTL_MS=10000
+      - STALE_CACHE_TTL_MS=60000
+      - DISPATCH_INTERVAL_MS=1000
+      - ADAPTIVE_MAX_DISPATCH_INTERVAL_MS=3000
+      - ADAPTIVE_STEP_MS=500
+      - ADAPTIVE_COOLDOWN_MS=8000
+      - RETRY_SUPPRESSION_WINDOW_MS=4000
+      - PENALTY_SIGNAL_THRESHOLD_MS=2500
+      - REQUEST_TTL_MS=60000
+      - MAX_QUEUE_SIZE=500
+      - EXTERNAL_TIMEOUT_MS=2000
+      - RETRY_MAX_ATTEMPTS=2
+      - RETRY_BASE_DELAY_MS=300
+      - LOG_LEVEL=info
+    ports:
+      - "3000:3000"
